@@ -1,9 +1,16 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import {useState, useEffect} from 'react'
 
 //api requests
-import {categoryListURL} from '../util/api';
+import { categoryListURL, getMovieInfo } from '../util/api';
+
+//components
+import MovieRow from '../components/MovieRow'
+import FeaturedMovie from '../components/FeaturedMovie'
+import Nav from '../components/Nav'
+import styled from 'styled-components'
 
 export default function Home({ 
   listNetflix,
@@ -13,9 +20,10 @@ export default function Home({
   listComedy,
   listHorror,
   listRomance,
-  listDocumentary }) {
+  listDocumentary,
+  featuredInfo }) {
   
-  
+    
   const categoryList = [{
     title: 'Netflix Originals',
     items: listNetflix.results,
@@ -48,71 +56,62 @@ export default function Home({
       items: listDocumentary.results,
       },]
   
-  console.log(categoryList)
+  const [blackNav, setBlackNav] = useState(false);
+  useEffect(() => {
+    const scrollListener = () => {
+      if (window.scrollY > 10) {
+        setBlackNav(true);
+      } else {
+        setBlackNav(false);
+      }
+    }
+    window.addEventListener('scroll', scrollListener);
+    return () => {
+      window.removeEventListener('scroll', scrollListener);
+    }
+  }, [])
 
   return (
-    <div className={styles.container}>
+    <div> 
       <Head>
         <title>Netflix Clone</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+      <Nav black={ blackNav}/>
+      <FeaturedMovie info={ featuredInfo}/>
+      <Lists> 
+        {categoryList.map((item, key) => (
+          <MovieRow
+            title={item.title}
+            items = {item.items}
+            key={key} />
+        ))}
+      </Lists> 
+      {categoryList.length <= 0 &&
+      <Loading>
+        <img src="https://cdn.lowgif.com/small/0534e2a412eeb281-the-counterintuitive-tech-behind-netflix-s-worldwide.gif" alt="loading" />
+      </Loading>
+      }
     </div>
   )
 }
+
+const Loading = styled.div`
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 990;
+  background-color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Lists = styled.div`
+  margin-top: -150px;
+`;
 
 export const getServerSideProps = async (context) => {
   
@@ -133,6 +132,10 @@ export const getServerSideProps = async (context) => {
   res = await fetch(`${categoryListURL.documentary}`);
   const listDocumentary = await res.json();
 
+  const originals = listNetflix.results[Math.floor(Math.random() * listNetflix.results.length - 1)];
+  res = await fetch(getMovieInfo(originals.id));
+  const featuredInfo = await res.json();
+
   return {
     props: {
       listNetflix,
@@ -142,7 +145,8 @@ export const getServerSideProps = async (context) => {
       listComedy,
       listHorror,
       listRomance,
-      listDocumentary
+      listDocumentary,
+      featuredInfo
     }
   }
 }
