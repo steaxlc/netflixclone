@@ -25,7 +25,7 @@ const FeaturedMovie = ({ info }) => {
                         <Seasons> {info.number_of_seasons} season{info.number_of_seasons > 1 ? `s`: `` }</Seasons>
                     </Information>
                     <Description>
-                        {info.overview}
+                        {description}
                     </Description>
                     <Buttons>
                         <a href="#" className="watch"><FaPlay/> Watch</a>
