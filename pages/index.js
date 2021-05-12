@@ -87,7 +87,7 @@ export default function Home({
             key={key} />
         ))}
       </Lists> 
-      {categoryList.length <= 0 &&
+      {featuredInfo.length <= 0 &&
       <Loading>
         <img src="https://cdn.lowgif.com/small/0534e2a412eeb281-the-counterintuitive-tech-behind-netflix-s-worldwide.gif" alt="loading" />
       </Loading>
